@@ -1,0 +1,44 @@
+<svg width="320" height="320" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="logoTitle logoDesc">
+  <title id="logoTitle">Water Hole logo</title>
+  <desc id="logoDesc">A playful logo with a water droplet rising from an earthy hole under a warm sun.</desc>
+  <defs>
+    <linearGradient id="skyGlow" x1="160" y1="24" x2="160" y2="296" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F5FFF7"/>
+      <stop offset="1" stop-color="#DFF5FC"/>
+    </linearGradient>
+    <linearGradient id="dropFill" x1="160" y1="84" x2="160" y2="236" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7FE2F7"/>
+      <stop offset="1" stop-color="#1183B1"/>
+    </linearGradient>
+    <linearGradient id="soilFill" x1="82" y1="171" x2="238" y2="252" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B97943"/>
+      <stop offset="1" stop-color="#6B3F1F"/>
+    </linearGradient>
+    <filter id="softShadow" x="44" y="44" width="232" height="232" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="10"/>
+      <feGaussianBlur stdDeviation="10"/>
+      <feComposite in2="hardAlpha" operator="out"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.0705882 0 0 0 0 0.196078 0 0 0 0 0.282353 0 0 0 0.16 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_1" result="shape"/>
+    </filter>
+  </defs>
+
+  <circle cx="160" cy="160" r="132" fill="url(#skyGlow)"/>
+  <circle cx="160" cy="160" r="132" stroke="#9EC6D2" stroke-width="12"/>
+
+  <g filter="url(#softShadow)">
+    <circle cx="114" cy="103" r="28" fill="#FFD56B"/>
+    <path d="M220 129C220 173.183 193.137 209 160 209C126.863 209 100 173.183 100 129C100 93.6538 136.412 74.6929 155.031 48.4141C157.209 45.3397 161.791 45.3397 163.969 48.4141C182.588 74.6929 220 93.6538 220 129Z" fill="url(#dropFill)"/>
+    <path d="M154 83C139 101 128 117 128 134C128 161.614 145.909 184 168 184C181.098 184 192.725 176.12 200 163.918C193.57 169.351 185.25 172.6 176.2 172.6C154.108 172.6 136.2 150.214 136.2 122.6C136.2 110.905 140.566 99.6317 154 83Z" fill="white" fill-opacity="0.28"/>
+    <path d="M80 198C80 176.461 97.4609 159 119 159H201C222.539 159 240 176.461 240 198C240 205.978 237.606 213.773 233.133 220.379L222.096 236.68C214.823 247.423 202.693 253.84 189.718 253.84H130.282C117.307 253.84 105.177 247.423 97.9044 236.68L86.8665 220.379C82.3943 213.773 80 205.978 80 198Z" fill="url(#soilFill)"/>
+    <ellipse cx="160" cy="198" rx="56" ry="21" fill="#3A2112"/>
+    <ellipse cx="160" cy="193" rx="45" ry="12" fill="#1F1108"/>
+    <path d="M105 213C114.626 217.323 125.122 219.917 136 220.58" stroke="#D6A57A" stroke-width="7" stroke-linecap="round"/>
+    <path d="M195 225C202.18 222.856 208.96 219.563 215 215.26" stroke="#D6A57A" stroke-width="7" stroke-linecap="round"/>
+    <path d="M150 144C139.469 155.512 128.4 164.659 116.798 171.441" stroke="#0C6B8E" stroke-width="10" stroke-linecap="round" opacity="0.95"/>
+    <path d="M168 158C177.858 166.603 188.523 173.084 200 177.443" stroke="#0C6B8E" stroke-width="10" stroke-linecap="round" opacity="0.95"/>
+  </g>
+</svg>
