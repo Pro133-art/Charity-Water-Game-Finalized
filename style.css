@@ -28,16 +28,142 @@
 body {
 	margin: 0;
 	min-height: 100vh;
+	position: relative;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	padding: 1rem;
+	overflow-x: hidden;
 	font-family: "Baloo 2", "Trebuchet MS", sans-serif;
 	color: var(--ink);
 	background:
-		radial-gradient(circle at 12% 20%, rgba(39, 168, 216, 0.2) 0, rgba(39, 168, 216, 0) 35%),
-		radial-gradient(circle at 85% 90%, rgba(87, 197, 134, 0.22) 0, rgba(87, 197, 134, 0) 42%),
-		linear-gradient(170deg, var(--sky-top), var(--sky-bottom));
+		radial-gradient(circle at 20% 16%, rgba(255, 229, 154, 0.34) 0, rgba(255, 229, 154, 0) 36%),
+		radial-gradient(circle at 86% 88%, rgba(91, 182, 135, 0.2) 0, rgba(91, 182, 135, 0) 44%),
+		linear-gradient(180deg, #c8efff 0%, #def9ff 48%, #f4ffef 100%);
+}
+
+/* Full-page environment scene layered behind the game card. */
+.environment {
+	position: fixed;
+	inset: 0;
+	overflow: hidden;
+	pointer-events: none;
+	z-index: 0;
+}
+
+.env-sun {
+	position: absolute;
+	top: 6vh;
+	right: 9vw;
+	width: clamp(90px, 16vw, 180px);
+	aspect-ratio: 1 / 1;
+	border-radius: 50%;
+	background: radial-gradient(circle at 38% 35%, #fff3b9 0 20%, #ffd87f 50%, #ffbf4d 100%);
+	box-shadow:
+		0 0 0 24px rgba(255, 207, 98, 0.22),
+		0 0 0 56px rgba(255, 207, 98, 0.12),
+		0 12px 34px rgba(245, 160, 49, 0.3);
+	animation: sun-float 6.5s ease-in-out infinite;
+}
+
+.env-cloud {
+	position: absolute;
+	height: clamp(38px, 6vw, 58px);
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.78);
+	filter: drop-shadow(0 8px 12px rgba(72, 130, 158, 0.12));
+	animation: cloud-drift 26s linear infinite;
+}
+
+.env-cloud::before,
+.env-cloud::after {
+	content: "";
+	position: absolute;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.88);
+}
+
+.env-cloud::before {
+	width: 45%;
+	height: 95%;
+	left: 12%;
+	top: -45%;
+}
+
+.env-cloud::after {
+	width: 40%;
+	height: 80%;
+	right: 14%;
+	top: -32%;
+}
+
+.env-cloud-one {
+	width: clamp(120px, 20vw, 260px);
+	top: 20vh;
+	left: -14vw;
+	animation-delay: -6s;
+}
+
+.env-cloud-two {
+	width: clamp(100px, 16vw, 200px);
+	top: 30vh;
+	left: -22vw;
+	opacity: 0.8;
+	animation-duration: 34s;
+	animation-delay: -16s;
+}
+
+.env-hills {
+	position: absolute;
+	left: -10%;
+	right: -10%;
+	bottom: 12vh;
+	height: clamp(120px, 20vh, 230px);
+	background:
+		radial-gradient(65% 140% at 12% 100%, #7cbf67 0 64%, transparent 66%),
+		radial-gradient(58% 130% at 36% 100%, #63aa55 0 63%, transparent 65%),
+		radial-gradient(62% 145% at 64% 100%, #7db96b 0 62%, transparent 64%),
+		radial-gradient(55% 130% at 88% 100%, #5b9e4f 0 61%, transparent 63%);
+	filter: saturate(1.05);
+}
+
+.env-waterline {
+	position: absolute;
+	left: -8%;
+	right: -8%;
+	bottom: 8vh;
+	height: clamp(42px, 7vh, 74px);
+	border-radius: 44% 56% 36% 64% / 56% 48% 52% 44%;
+	background:
+		linear-gradient(180deg, rgba(94, 199, 236, 0.86), rgba(48, 157, 199, 0.82)),
+		repeating-linear-gradient(
+			96deg,
+			rgba(255, 255, 255, 0.24) 0,
+			rgba(255, 255, 255, 0.24) 16px,
+			rgba(255, 255, 255, 0.04) 16px,
+			rgba(255, 255, 255, 0.04) 32px
+		);
+	box-shadow: 0 10px 30px rgba(19, 113, 148, 0.25);
+	animation: water-sway 4.2s ease-in-out infinite;
+}
+
+.env-ground {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: clamp(92px, 16vh, 160px);
+	background:
+		repeating-linear-gradient(
+			110deg,
+			rgba(125, 91, 53, 0.16) 0,
+			rgba(125, 91, 53, 0.16) 18px,
+			rgba(110, 78, 43, 0.08) 18px,
+			rgba(110, 78, 43, 0.08) 34px
+		),
+		linear-gradient(180deg, #c79f6e, #ad8155 60%, #956c44 100%);
+	border-top: 3px solid rgba(255, 241, 208, 0.35);
+	box-shadow: inset 0 10px 20px rgba(255, 244, 212, 0.15);
 }
 
 .game {
@@ -47,6 +173,8 @@ body {
 	border-radius: 26px;
 	padding: 0.9rem 0.9rem 1.1rem;
 	box-shadow: var(--shadow-soft);
+	position: relative;
+	z-index: 2;
 	animation: pop-in 420ms ease-out;
 	transition: filter 220ms ease;
 }
@@ -483,6 +611,20 @@ body {
 		padding: 0.6rem;
 	}
 
+	.env-sun {
+		top: 7vh;
+		right: -8vw;
+	}
+
+	.env-hills {
+		bottom: 11vh;
+		height: clamp(104px, 16vh, 180px);
+	}
+
+	.env-waterline {
+		bottom: 7vh;
+	}
+
 	.game {
 		padding: 0.8rem;
 	}
@@ -563,6 +705,14 @@ body {
 @media (min-width: 768px) {
 	body {
 		padding: 2rem;
+	}
+
+	.env-sun {
+		right: 14vw;
+	}
+
+	.env-ground {
+		height: clamp(100px, 18vh, 220px);
 	}
 
 	.game {
@@ -799,5 +949,35 @@ body {
 	}
 	to {
 		filter: saturate(1.15);
+	}
+}
+
+/* Slow atmospheric movement for background scenery. */
+@keyframes sun-float {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(7px);
+	}
+}
+
+@keyframes cloud-drift {
+	from {
+		transform: translateX(0);
+	}
+	to {
+		transform: translateX(140vw);
+	}
+}
+
+@keyframes water-sway {
+	0%,
+	100% {
+		transform: translateX(0) skewX(0deg);
+	}
+	50% {
+		transform: translateX(-10px) skewX(-1deg);
 	}
 }
