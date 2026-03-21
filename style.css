@@ -42,6 +42,157 @@ body {
 		linear-gradient(180deg, #c8efff 0%, #def9ff 48%, #f4ffef 100%);
 }
 
+/* Intro modal overlay and styling. */
+.intro-modal {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background: rgba(0, 0, 0, 0.5);
+	backdrop-filter: blur(2px);
+	z-index: 1000;
+	opacity: 1;
+	transition: opacity 0.3s ease;
+}
+
+.intro-modal.hidden {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.intro-card {
+	background: var(--panel);
+	border: 3px solid var(--panel-border);
+	border-radius: 12px;
+	padding: 2rem;
+	max-width: 500px;
+	width: 90%;
+	box-shadow: var(--shadow-soft);
+	animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+	from {
+		transform: translateY(20px);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+.intro-title {
+	margin: 0 0 0.5rem 0;
+	font-size: 1.75rem;
+	font-weight: 800;
+	color: var(--ink);
+	text-align: center;
+}
+
+.intro-subtitle {
+	margin: 0 0 1.5rem 0;
+	font-size: 0.95rem;
+	color: #666;
+	text-align: center;
+	font-weight: 600;
+}
+
+.intro-rules {
+	margin: 1.5rem 0;
+	text-align: left;
+}
+
+.intro-rules h3 {
+	margin: 0 0 1rem 0;
+	font-size: 1.1rem;
+	color: var(--ink);
+}
+
+.intro-rules ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.intro-rules li {
+	margin-bottom: 0.75rem;
+	font-size: 0.95rem;
+	line-height: 1.5;
+	color: #333;
+	padding-left: 1.5rem;
+	position: relative;
+}
+
+.intro-rules li:before {
+	content: "▪";
+	position: absolute;
+	left: 0;
+	color: var(--water);
+}
+
+.start-button {
+	width: 100%;
+	padding: 0.875rem 1.5rem;
+	margin-top: 1.5rem;
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: white;
+	background: linear-gradient(135deg, var(--water) 0%, var(--water-deep) 100%);
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+	box-shadow: 0 4px 12px rgba(39, 168, 216, 0.3);
+}
+
+.start-button:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 20px rgba(39, 168, 216, 0.4);
+}
+
+.start-button:active {
+	transform: translateY(0);
+}
+
+/* Confetti animation container and particles. */
+.confetti-container {
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 999;
+}
+
+.confetti {
+	position: fixed;
+	pointer-events: none;
+	width: 10px;
+	height: 10px;
+	background: var(--cw-yellow);
+	top: -10px;
+}
+
+@keyframes fall {
+	to {
+		transform: translateY(100vh) rotate(720deg);
+		opacity: 0;
+	}
+}
+
+@keyframes sway {
+	0%, 100% {
+		transform: translateX(0);
+	}
+	50% {
+		transform: translateX(var(--sway-amount));
+	}
+}
+
+.confetti.falling {
+	animation: fall var(--duration) linear forwards, sway var(--sway-duration) ease-in-out infinite;
+}
+
 /* Full-page environment scene layered behind the game card. */
 .environment {
 	position: fixed;

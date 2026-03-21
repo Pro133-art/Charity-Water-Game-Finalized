@@ -10,11 +10,14 @@ const extractorButton = document.getElementById("extractorButton");
 const levelSelector = document.getElementById("levelSelector");
 const levelButtons = Array.from(document.querySelectorAll(".level-button"));
 const gameContainer = document.getElementById("water-hole-game");
+const introModal = document.getElementById("introModal");
+const startButton = document.getElementById("startButton");
 const endScreen = document.getElementById("endScreen");
 const endScreenTitle = document.getElementById("endScreenTitle");
 const endScreenMessage = document.getElementById("endScreenMessage");
 const restartButton = document.getElementById("restartButton");
 const cwDonateBtn = document.getElementById("cwDonateBtn");
+const confettiContainer = document.getElementById("confettiContainer");
 const holes = Array.from(document.querySelectorAll(".hole"));
 
 // Core limits and gameplay tuning values.
@@ -244,6 +247,47 @@ function advanceToNextLevel() {
 	});
 }
 
+// Create and animate confetti particles on win.
+function triggerConfetti() {
+	const confettiCount = 50;
+	const colors = ["--cw-yellow", "--water", "--button-shovel", "--button-extractor", "--pollution"];
+
+	for (let i = 0; i < confettiCount; i++) {
+		const confetti = document.createElement("div");
+		confetti.className = "confetti";
+
+		// Random horizontal position across the screen.
+		const xPos = Math.random() * 100;
+		confetti.style.left = `${xPos}%`;
+
+		// Random color from the palette.
+		const colorVar = colors[Math.floor(Math.random() * colors.length)];
+		const colorValue = getComputedStyle(document.documentElement).getPropertyValue(colorVar).trim();
+		confetti.style.background = colorValue;
+
+		// Random fall duration between 2-4 seconds.
+		const duration = 2 + Math.random() * 2;
+		confetti.style.setProperty("--duration", `${duration}s`);
+
+		// Random sway duration for side-to-side movement.
+		const swayDuration = 1 + Math.random() * 1;
+		confetti.style.setProperty("--sway-duration", `${swayDuration}s`);
+
+		// Random sway amount (left-right movement).
+		const swayAmount = (Math.random() * 100 - 50);
+		confetti.style.setProperty("--sway-amount", `${swayAmount}px`);
+
+		// Add to container and trigger animation.
+		confettiContainer.appendChild(confetti);
+		// Force reflow to trigger CSS animation.
+		void confetti.offsetWidth;
+		confetti.classList.add("falling");
+
+		// Remove from DOM after animation completes to avoid memory buildup.
+		setTimeout(() => confetti.remove(), duration * 1000);
+	}
+}
+
 // Stop gameplay and reveal end-game overlay for win/loss states.
 function endGame(status, message) {
 	if (state.gameStatus !== "playing") {
@@ -262,6 +306,7 @@ function endGame(status, message) {
 	// Only show donation CTA on successful completion.
 	if (status === "won") {
 		cwDonateBtn.removeAttribute("hidden");
+		triggerConfetti();
 	} else {
 		cwDonateBtn.setAttribute("hidden", "hidden");
 	}
@@ -271,7 +316,7 @@ function endGame(status, message) {
 
 // Move to next level when available, otherwise finish the run as a win.
 function completeLevelOrWin() {
-	const timeBonus = state.secondsRemaining * LEVEL_TIME_BONUS_PER_SECOND;
+	const timeBonus = Math.min(50, state.secondsRemaining * LEVEL_TIME_BONUS_PER_SECOND);
 	state.points += timeBonus;
 	state.pointsNotice = `Level Time Bonus: +${timeBonus}`;
 	render();
@@ -285,6 +330,7 @@ function completeLevelOrWin() {
 
 	state.gameStatus = "paused";
 	clearHoleRedigTimers();
+	triggerConfetti();
 	// Unlock direct access to the next level once this one is cleared.
 	state.highestUnlockedLevelIndex = Math.min(LEVELS.length - 1, state.currentLevelIndex + 1);
 
@@ -497,7 +543,30 @@ levelSelector.addEventListener("click", (event) => {
 	startLevel(levelIndex);
 });
 
+// Close intro modal and start the game.
+function hideIntroModal() {
+	introModal.classList.add("hidden");
+}
+
+// Show intro modal at startup.
+function showIntroModal() {
+	introModal.classList.remove("hidden");
+}
+
 // Initial setup before the game loop starts.
 waterReservoirContainer.setAttribute("role", "button");
 waterReservoirContainer.setAttribute("tabindex", "0");
-startLevel(0);
+
+// Start button handler: close intro and begin game.
+startButton.addEventListener("click", () => {
+	hideIntroModal();
+	startLevel(0);
+});
+
+// Show intro modal on page load instead of immediately starting.
+showIntroModal();
+
+// Clear confetti on restart to prevent lingering particles.
+restartButton.addEventListener("click", () => {
+	confettiContainer.innerHTML = "";
+});

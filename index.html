@@ -119,6 +119,30 @@
 		</main>
 	</div>
 
+	<!-- Confetti animation container. -->
+	<div class="confetti-container" id="confettiContainer" aria-hidden="true"></div>
+
+	<!-- Intro modal shown at game start with rules and instructions. -->
+	<section class="intro-modal" id="introModal" aria-modal="true" role="dialog" aria-labelledby="introTitle">
+		<div class="intro-card">
+			<h2 class="intro-title" id="introTitle">Welcome to Water Hole</h2>
+			<div class="intro-content">
+				<p class="intro-subtitle">A Clean Water Challenge by charity: water</p>
+				<div class="intro-rules">
+					<h3>How to Play:</h3>
+					<ul>
+						<li><strong>Shovel Tool:</strong> Dig holes and clean muggy water to earn points</li>
+						<li><strong>Extractor Tool:</strong> Extract water from holes to fill your reservoir (clean water costs less)</li>
+						<li><strong>Reservoir:</strong> Click to purify water and reduce the pollution bar</li>
+						<li><strong>Objective:</strong> Empty the pollution bar before time runs out</li>
+						<li><strong>Points:</strong> Use your points to pay for water extraction</li>
+					</ul>
+				</div>
+			</div>
+			<button type="button" class="start-button" id="startButton">Start Game</button>
+		</div>
+	</section>
+
 	<!-- End-state overlay shown for level transitions and win/loss outcomes. -->
 	<section class="end-screen" id="endScreen" aria-live="polite" aria-modal="true" role="dialog">
 		<div class="end-screen-card">
