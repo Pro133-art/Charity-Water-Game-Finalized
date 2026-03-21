@@ -31,7 +31,10 @@ const CLEAN_EXTRACTION_COST = 100;
 const MUGGY_EXTRACTION_COST = 150;
 const RESERVOIR_REWARD_POINTS = 200;
 const LEVEL_TIME_BONUS_PER_SECOND = 2;
-const HOLE_REDIG_DELAY_MS = 8000;
+const HOLE_REDIG_DELAY_MIN_MS = 5000;
+const HOLE_REDIG_DELAY_MAX_MS = 11000;
+const HOLE_REDIG_LEVEL_SPEEDUP_PER_LEVEL = 0.2;
+const HOLE_REDIG_MIN_MULTIPLIER = 0.55;
 const LEVELS = [
 	{ name: "Level 1", totalSeconds: 120, pollutionReductionAmount: 18 },
 	{ name: "Level 2", totalSeconds: 150, pollutionReductionAmount: 12 },
@@ -155,6 +158,19 @@ function render() {
 	renderLevelButtons();
 }
 
+// Return a random redig delay inside the configured min/max range.
+function getRandomHoleRedigDelayMs() {
+	// Higher levels shorten both bounds, making holes revert faster.
+	const levelMultiplier = Math.max(
+		HOLE_REDIG_MIN_MULTIPLIER,
+		1 - (state.currentLevelIndex * HOLE_REDIG_LEVEL_SPEEDUP_PER_LEVEL)
+	);
+	const levelMinDelay = Math.round(HOLE_REDIG_DELAY_MIN_MS * levelMultiplier);
+	const levelMaxDelay = Math.round(HOLE_REDIG_DELAY_MAX_MS * levelMultiplier);
+
+	return Math.floor(Math.random() * (levelMaxDelay - levelMinDelay + 1)) + levelMinDelay;
+}
+
 // Revert a cleaned hole back to muggy after a short cooldown.
 function scheduleHoleRedig(index) {
 	const existingTimeoutId = state.holeRespawnTimeoutIds[index];
@@ -173,7 +189,7 @@ function scheduleHoleRedig(index) {
 
 		state.holeStates[index] = "muggy";
 		render();
-	}, HOLE_REDIG_DELAY_MS);
+	}, getRandomHoleRedigDelayMs());
 }
 
 // Cancel all pending hole redig timers.
