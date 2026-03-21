@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+	<!-- Character encoding and responsive viewport baseline. -->
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<!-- Document title shown in the browser tab. -->
 	<title>Water Hole — A charity: water Game</title>
+	<!-- Shared game styling and animation rules. -->
 	<link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -19,12 +22,14 @@
 
 	<!-- Main playable game board. -->
 	<div class="game" id="water-hole-game">
+		<!-- Brand lockup and outbound link to charity: water. -->
 		<header class="brand-banner" aria-label="Water Hole game branding">
 			<img class="brand-logo" src="assets/water-hole-logo.svg" alt="Water Hole logo" />
 			<div class="brand-copy">
 				<p class="brand-kicker">Clean Water Challenge</p>
 				<h1 class="brand-title">Water Hole</h1>
 			</div>
+			<!-- Upper-right badge linking to the nonprofit website. -->
 			<a class="cw-corner-badge" href="https://www.charitywater.org" target="_blank" rel="noopener noreferrer" aria-label="charity: water">
 				<svg class="cw-drop-icon" fill="none" viewBox="0 0 26 34" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
 					<clipPath id="cw-jerry-clip"><path d="m.513062 0h24.5777v34h-24.5777z"/></clipPath>
@@ -41,12 +46,20 @@
 			<div class="pollution-bar" id="pollutionBar"></div>
 		</div>
 
+		<!-- Level selection controls. -->
+		<nav class="level-selector" id="levelSelector" aria-label="Select level">
+			<button type="button" class="level-button active" data-level-index="0" aria-pressed="true">Level 1</button>
+			<button type="button" class="level-button" data-level-index="1" aria-pressed="false">Level 2</button>
+			<button type="button" class="level-button" data-level-index="2" aria-pressed="false">Level 3</button>
+		</nav>
+
 		<!-- Live timer and points bank. -->
 		<header class="game-header">
 			<div class="timer" id="timer">Timer: 00:00</div>
 			<div class="points" id="points">Points: 0</div>
 		</header>
 
+		<!-- Core game interaction area: reservoir, holes, and tools. -->
 		<main class="game-main">
 			<!-- Vertical reservoir that fills in four extraction segments. -->
 			<aside class="water-reservoir-container" id="waterReservoirContainer" aria-label="Water reservoir">
@@ -106,7 +119,7 @@
 		</main>
 	</div>
 
-	<!-- End-state overlay shown for both win and loss outcomes. -->
+	<!-- End-state overlay shown for level transitions and win/loss outcomes. -->
 	<section class="end-screen" id="endScreen" aria-live="polite" aria-modal="true" role="dialog">
 		<div class="end-screen-card">
 			<h2 class="end-screen-title" id="endScreenTitle">Game Over</h2>
