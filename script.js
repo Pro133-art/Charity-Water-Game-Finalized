@@ -18,28 +18,38 @@ const holes = Array.from(document.querySelectorAll(".hole"));
 // Core limits and gameplay tuning values.
 const MAX_LEVEL = 100;
 const MIN_LEVEL = 0;
-const totalSeconds = 180;
 const STARTING_POINTS = 500;
 const RESERVOIR_SEGMENTS = 4;
 const CLEAN_EXTRACTION_COST = 100;
 const MUGGY_EXTRACTION_COST = 150;
 const RESERVOIR_REWARD_POINTS = 200;
-const RESERVOIR_POLLUTION_REDUCTION_AMOUNT = 15;
 const HOLE_REDIG_DELAY_MS = 8000;
+const LEVELS = [
+	{ name: "Level 1", totalSeconds: 120, pollutionReductionAmount: 18 },
+	{ name: "Level 2", totalSeconds: 150, pollutionReductionAmount: 12 },
+	{ name: "Level 3", totalSeconds: 180, pollutionReductionAmount: 8 },
+];
+
+// Return active level data from the level list.
+function getCurrentLevel() {
+	return LEVELS[state.currentLevelIndex];
+}
 
 // Mutable state for a single game session.
 const state = {
 	pollution: 100,
 	water: 0,
 	points: STARTING_POINTS,
-	secondsRemaining: totalSeconds,
+	secondsRemaining: LEVELS[0].totalSeconds,
 	selectedTool: "shovel",
 	activeHoleIndex: 0,
 	holeStates: Array.from({ length: holes.length }, () => "muggy"),
 	holeRespawnTimeoutIds: Array.from({ length: holes.length }, () => null),
 	reservoirSegments: 0,
+	currentLevelIndex: 0,
 	pointsNotice: "",
 	gameStatus: "playing",
+	overlayMode: "restart",
 	intervalId: null,
 };
 
@@ -74,7 +84,7 @@ function renderBars() {
 function renderScoreboard() {
 	const minutes = String(Math.floor(state.secondsRemaining / 60)).padStart(2, "0");
 	const seconds = String(state.secondsRemaining % 60).padStart(2, "0");
-	timer.textContent = `Timer: ${minutes}:${seconds}`;
+	timer.textContent = `${getCurrentLevel().name} Timer: ${minutes}:${seconds}`;
 	points.textContent = state.pointsNotice
 		? `Points: ${state.points} (${state.pointsNotice})`
 		: `Points: ${state.points}`;
@@ -120,6 +130,48 @@ function scheduleHoleRedig(index) {
 	}, HOLE_REDIG_DELAY_MS);
 }
 
+// Cancel all pending hole redig timers.
+function clearHoleRedigTimers() {
+	state.holeRespawnTimeoutIds.forEach((timeoutId, index) => {
+		if (timeoutId === null) {
+			return;
+		}
+
+		window.clearTimeout(timeoutId);
+		state.holeRespawnTimeoutIds[index] = null;
+	});
+}
+
+// Show overlay during level transitions and on final outcomes.
+function showOverlay(title, message, buttonLabel, mode) {
+	endScreenTitle.textContent = title;
+	endScreenMessage.textContent = message;
+	restartButton.textContent = buttonLabel;
+	state.overlayMode = mode;
+	endScreen.classList.add("visible");
+	gameContainer.classList.add("game-disabled");
+}
+
+// Hide overlay and re-enable board interactions.
+function hideOverlay() {
+	endScreen.classList.remove("visible");
+	gameContainer.classList.remove("game-disabled");
+}
+
+// Prepare and start the next level while keeping score continuity.
+function advanceToNextLevel() {
+	state.currentLevelIndex += 1;
+	state.pollution = 100;
+	state.reservoirSegments = 0;
+	state.secondsRemaining = getCurrentLevel().totalSeconds;
+	state.pointsNotice = `${getCurrentLevel().name}: less pollution removed per reservoir`;
+	state.holeStates = Array.from({ length: holes.length }, () => "muggy");
+	clearHoleRedigTimers();
+	hideOverlay();
+	state.gameStatus = "playing";
+	render();
+}
+
 // Stop gameplay and reveal end-game overlay for win/loss states.
 function endGame(status, message) {
 	if (state.gameStatus !== "playing") {
@@ -133,22 +185,38 @@ function endGame(status, message) {
 		state.intervalId = null;
 	}
 
-	state.holeRespawnTimeoutIds.forEach((timeoutId, index) => {
-		if (timeoutId === null) {
-			return;
-		}
+	clearHoleRedigTimers();
 
-		window.clearTimeout(timeoutId);
-		state.holeRespawnTimeoutIds[index] = null;
-	});
-
-	endScreenTitle.textContent = status === "won" ? "Mission Accomplished" : "Game Over";
-	endScreenMessage.textContent = message;
 	if (status === "won") {
 		cwDonateBtn.removeAttribute("hidden");
+	} else {
+		cwDonateBtn.setAttribute("hidden", "hidden");
 	}
-	endScreen.classList.add("visible");
-	gameContainer.classList.add("game-disabled");
+
+	showOverlay(status === "won" ? "Mission Accomplished" : "Game Over", message, "Play Again", "restart");
+}
+
+// Move to next level when available, otherwise finish the run as a win.
+function completeLevelOrWin() {
+	const isFinalLevel = state.currentLevelIndex >= LEVELS.length - 1;
+
+	if (isFinalLevel) {
+		endGame("won", "You cleared all 3 levels and emptied every pollution bar.");
+		return;
+	}
+
+	state.gameStatus = "paused";
+	clearHoleRedigTimers();
+
+	const nextLevel = LEVELS[state.currentLevelIndex + 1];
+	const currentLevelName = getCurrentLevel().name;
+
+	showOverlay(
+		"Level Complete",
+		`${currentLevelName} cleared. Next: ${nextLevel.name} (${nextLevel.totalSeconds}s, -${nextLevel.pollutionReductionAmount} pollution per full reservoir).`,
+		`Start ${nextLevel.name}`,
+		"next-level"
+	);
 }
 
 // Evaluate winning and losing rules after each meaningful game update.
@@ -158,7 +226,7 @@ function checkEndConditions() {
 	}
 
 	if (state.pollution <= MIN_LEVEL) {
-		endGame("won", "You emptied the Pollution Bar before time and points ran out.");
+		completeLevelOrWin();
 		return;
 	}
 
@@ -201,7 +269,7 @@ function extractWater(index) {
 
 	// Prevent overfilling and prompt the player to spend the full reservoir.
 	if (state.reservoirSegments >= RESERVOIR_SEGMENTS) {
-		state.pointsNotice = `Reservoir Full: Click it to purify (-${RESERVOIR_POLLUTION_REDUCTION_AMOUNT} pollution, +${RESERVOIR_REWARD_POINTS} points)`;
+		state.pointsNotice = `Reservoir Full: Click it to purify (-${getCurrentLevel().pollutionReductionAmount} pollution, +${RESERVOIR_REWARD_POINTS} points)`;
 		render();
 		return;
 	}
@@ -236,10 +304,11 @@ function spendReservoirWater() {
 		return;
 	}
 
-	state.pollution = clamp(state.pollution - RESERVOIR_POLLUTION_REDUCTION_AMOUNT);
+	const pollutionReductionAmount = getCurrentLevel().pollutionReductionAmount;
+	state.pollution = clamp(state.pollution - pollutionReductionAmount);
 	state.points += RESERVOIR_REWARD_POINTS;
 	state.reservoirSegments = 0;
-	state.pointsNotice = `Reservoir Purify Reward: -${RESERVOIR_POLLUTION_REDUCTION_AMOUNT} pollution, +${RESERVOIR_REWARD_POINTS} points`;
+	state.pointsNotice = `Reservoir Purify Reward: -${pollutionReductionAmount} pollution, +${RESERVOIR_REWARD_POINTS} points`;
 	render();
 	checkEndConditions();
 }
@@ -299,6 +368,11 @@ waterReservoirContainer.addEventListener("keydown", (event) => {
 
 // Restart control resets state by reloading the page.
 restartButton.addEventListener("click", () => {
+	if (state.overlayMode === "next-level") {
+		advanceToNextLevel();
+		return;
+	}
+
 	window.location.reload();
 });
 
