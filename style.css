@@ -475,6 +475,7 @@ body {
 /* Header row for timer and points. */
 .game-header {
 	display: flex;
+	align-items: center;
 	justify-content: space-between;
 	gap: 0.6rem;
 	margin-top: 0.7rem;
@@ -493,6 +494,42 @@ body {
 	border-radius: 12px;
 	background: #f3fbff;
 	border: 2px solid #b8d6e0;
+}
+
+/* Pause control that opens the pause dialog during active gameplay. */
+.pause-button {
+	height: 40px;
+	min-width: 92px;
+	padding: 0 0.9rem;
+	border-radius: 999px;
+	border: 2px solid #91b8c8;
+	background: linear-gradient(180deg, #f5fbff, #dfedf3);
+	color: #113449;
+	font-family: Georgia, "Times New Roman", serif;
+	font-size: 0.82rem;
+	font-weight: 800;
+	letter-spacing: 0.03em;
+	cursor: pointer;
+	box-shadow: 0 5px 0 rgba(18, 50, 72, 0.16);
+	transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.pause-button:hover,
+.pause-button:focus-visible {
+	transform: translateY(-2px);
+	box-shadow: 0 7px 0 rgba(18, 50, 72, 0.16);
+}
+
+.pause-button:active {
+	transform: translateY(2px);
+	box-shadow: 0 3px 0 rgba(18, 50, 72, 0.16);
+}
+
+.pause-button:disabled {
+	opacity: 0.58;
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: 0 4px 0 rgba(18, 50, 72, 0.1);
 }
 
 /* Three-column core layout: reservoir, holes, tools. */
@@ -765,6 +802,98 @@ body {
 	z-index: 35;
 }
 
+/* Full-screen pause menu overlay. */
+.pause-screen {
+	position: fixed;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	padding: 1.1rem;
+	background: rgba(18, 50, 72, 0.42);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 220ms ease;
+	z-index: 34;
+}
+
+.pause-screen.visible {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.pause-screen-card {
+	width: min(100%, 400px);
+	background: linear-gradient(180deg, #f8fdff, #e7f3f8);
+	border: 3px solid #8db4c0;
+	border-radius: 20px;
+	padding: 1.15rem 1rem 1.05rem;
+	text-align: center;
+	box-shadow: 0 14px 32px rgba(10, 44, 61, 0.24);
+	animation: pop-in 260ms ease-out;
+}
+
+.pause-screen-title {
+	margin: 0;
+	font-family: Georgia, "Times New Roman", serif;
+	font-size: 1.5rem;
+	line-height: 1.15;
+}
+
+.pause-screen-message {
+	margin: 0.6rem 0 0;
+	font-size: 0.98rem;
+	line-height: 1.35;
+	font-weight: 700;
+}
+
+.pause-actions {
+	margin-top: 0.95rem;
+	display: flex;
+	gap: 0.6rem;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+
+.pause-continue-button,
+.pause-restart-button {
+	height: 48px;
+	min-width: 156px;
+	padding: 0 0.9rem;
+	border-radius: 999px;
+	border: 3px solid #ffffff;
+	font-family: Georgia, "Times New Roman", serif;
+	font-size: 0.92rem;
+	font-weight: 800;
+	letter-spacing: 0.02em;
+	cursor: pointer;
+	box-shadow: 0 7px 0 rgba(18, 50, 72, 0.2);
+	transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.pause-continue-button {
+	background: linear-gradient(180deg, #99dff4, #31abd7);
+	color: #0e2a3b;
+}
+
+.pause-restart-button {
+	background: linear-gradient(180deg, #ffd57f, #f3b533);
+	color: #4d3300;
+}
+
+.pause-continue-button:hover,
+.pause-continue-button:focus-visible,
+.pause-restart-button:hover,
+.pause-restart-button:focus-visible {
+	transform: translateY(-2px);
+	box-shadow: 0 9px 0 rgba(18, 50, 72, 0.2);
+}
+
+.pause-continue-button:active,
+.pause-restart-button:active {
+	transform: translateY(2px);
+	box-shadow: 0 4px 0 rgba(18, 50, 72, 0.2);
+}
+
 /* Make end screen interactive when visible. */
 .end-screen.visible {
 	opacity: 1;
@@ -898,6 +1027,20 @@ body {
 			"reservoir holes"
 			"tools tools";
 		gap: 0.65rem;
+	}
+
+	.game-header {
+		flex-wrap: wrap;
+	}
+
+	.timer,
+	.points {
+		flex: 1 1 calc(50% - 0.3rem);
+	}
+
+	.pause-button {
+		flex: 1 1 100%;
+		height: 38px;
 	}
 
 	.water-reservoir-container {

@@ -57,6 +57,7 @@
 		<header class="game-header">
 			<div class="timer" id="timer">Timer: 00:00</div>
 			<div class="points" id="points">Points: 0</div>
+			<button type="button" class="pause-button" id="pauseButton" disabled aria-label="Pause game">Pause</button>
 		</header>
 
 		<!-- Core game interaction area: reservoir, holes, and tools. -->
@@ -140,6 +141,18 @@
 				</div>
 			</div>
 			<button type="button" class="start-button" id="startButton">Start Game</button>
+		</div>
+	</section>
+
+	<!-- Pause menu overlay shown when gameplay is temporarily suspended. -->
+	<section class="pause-screen" id="pauseScreen" aria-modal="true" role="dialog" aria-labelledby="pauseTitle">
+		<div class="pause-screen-card">
+			<h2 class="pause-screen-title" id="pauseTitle">Game Paused</h2>
+			<p class="pause-screen-message">Take a break, then continue or restart the current level.</p>
+			<div class="pause-actions">
+				<button type="button" class="pause-continue-button" id="pauseContinueButton">Continue</button>
+				<button type="button" class="pause-restart-button" id="pauseRestartButton">Restart Level</button>
+			</div>
 		</div>
 	</section>
 

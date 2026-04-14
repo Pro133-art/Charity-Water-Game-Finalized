@@ -5,6 +5,7 @@ const waterReservoir = document.getElementById("waterReservoir");
 const waterReservoirContainer = document.getElementById("waterReservoirContainer");
 const timer = document.getElementById("timer");
 const points = document.getElementById("points");
+const pauseButton = document.getElementById("pauseButton");
 const shovelButton = document.getElementById("shovelButton");
 const extractorButton = document.getElementById("extractorButton");
 const levelSelector = document.getElementById("levelSelector");
@@ -16,6 +17,9 @@ const endScreen = document.getElementById("endScreen");
 const endScreenTitle = document.getElementById("endScreenTitle");
 const endScreenMessage = document.getElementById("endScreenMessage");
 const restartButton = document.getElementById("restartButton");
+const pauseScreen = document.getElementById("pauseScreen");
+const pauseContinueButton = document.getElementById("pauseContinueButton");
+const pauseRestartButton = document.getElementById("pauseRestartButton");
 const cwDonateBtn = document.getElementById("cwDonateBtn");
 const confettiContainer = document.getElementById("confettiContainer");
 const holes = Array.from(document.querySelectorAll(".hole"));
@@ -220,6 +224,48 @@ function hideOverlay() {
 	gameContainer.classList.remove("game-disabled");
 }
 
+// Show pause menu and freeze game updates.
+function showPauseMenu() {
+	if (state.gameStatus !== "playing") {
+		return;
+	}
+
+	state.gameStatus = "paused";
+
+	if (state.intervalId !== null) {
+		window.clearInterval(state.intervalId);
+		state.intervalId = null;
+	}
+
+	clearHoleRedigTimers();
+	pauseScreen.classList.add("visible");
+	gameContainer.classList.add("game-disabled");
+	pauseButton.disabled = true;
+}
+
+// Resume game loop and interactions from pause menu.
+function resumeFromPause() {
+	if (state.gameStatus !== "paused" || !pauseScreen.classList.contains("visible")) {
+		return;
+	}
+
+	state.gameStatus = "playing";
+	pauseScreen.classList.remove("visible");
+	gameContainer.classList.remove("game-disabled");
+	pauseButton.disabled = false;
+
+	// Recreate redig timers for currently clean holes.
+	state.holeStates.forEach((holeState, index) => {
+		if (holeState === "clean") {
+			scheduleHoleRedig(index);
+		}
+	});
+
+	if (state.intervalId === null) {
+		state.intervalId = window.setInterval(tick, 1000);
+	}
+}
+
 // Reset round values and begin the selected level.
 function startLevel(levelIndex, options = {}) {
 	const { preservePoints = false, notice = "" } = options;
@@ -247,8 +293,10 @@ function startLevel(levelIndex, options = {}) {
 	state.overlayMode = "restart";
 
 	// Restore interactive board and boot a fresh one-second tick loop.
+	pauseScreen.classList.remove("visible");
 	hideOverlay();
 	setSelectedTool(state.selectedTool);
+	pauseButton.disabled = false;
 	render();
 	state.intervalId = window.setInterval(tick, 1000);
 }
@@ -318,6 +366,7 @@ function endGame(status, message) {
 	}
 
 	clearHoleRedigTimers();
+	pauseButton.disabled = true;
 
 	// Only show donation CTA on successful completion.
 	if (status === "won") {
@@ -492,6 +541,13 @@ extractorButton.addEventListener("click", () => {
 	setSelectedTool("extractor");
 	state.pointsNotice = "";
 	render();
+});
+
+pauseButton.addEventListener("click", showPauseMenu);
+pauseContinueButton.addEventListener("click", resumeFromPause);
+pauseRestartButton.addEventListener("click", () => {
+	pauseScreen.classList.remove("visible");
+	startLevel(state.currentLevelIndex);
 });
 
 // Hole clicks run either digging or extraction, based on active tool.
