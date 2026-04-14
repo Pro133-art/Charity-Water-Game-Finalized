@@ -45,6 +45,18 @@ const LEVELS = [
 	{ name: "Level 3", totalSeconds: 180, pollutionReductionAmount: 8 },
 ];
 
+const GAME_STATUS = {
+	PLAYING: "playing",
+	PAUSED: "paused",
+	WON: "won",
+	LOST: "lost",
+};
+
+const OVERLAY_MODE = {
+	RESTART: "restart",
+	NEXT_LEVEL: "next-level",
+};
+
 // Return active level data from the level list.
 function getCurrentLevel() {
 	return LEVELS[state.currentLevelIndex];
@@ -77,12 +89,36 @@ const state = {
 	// Optional inline status detail shown beside points.
 	pointsNotice: "",
 	// Current lifecycle state: playing, paused, won, or lost.
-	gameStatus: "playing",
+	gameStatus: GAME_STATUS.PLAYING,
 	// Overlay intent used by restart button logic.
-	overlayMode: "restart",
+	overlayMode: OVERLAY_MODE.RESTART,
 	// Main game loop interval ID.
 	intervalId: null,
 };
+
+// Return true when the game should accept active input/ticks.
+function isPlaying() {
+	return state.gameStatus === GAME_STATUS.PLAYING;
+}
+
+// Ensure the one-second interval loop is not running.
+function stopGameLoop() {
+	if (state.intervalId === null) {
+		return;
+	}
+
+	window.clearInterval(state.intervalId);
+	state.intervalId = null;
+}
+
+// Start the one-second interval loop if it is not already active.
+function startGameLoop() {
+	if (state.intervalId !== null) {
+		return;
+	}
+
+	state.intervalId = window.setInterval(tick, 1000);
+}
 
 // Keep percentage values between the min and max limits.
 function clamp(value) {
@@ -187,7 +223,7 @@ function scheduleHoleRedig(index) {
 		state.holeRespawnTimeoutIds[index] = null;
 
 		// Skip respawn if game is not active or hole was changed already.
-		if (state.gameStatus !== "playing" || state.holeStates[index] !== "clean") {
+		if (!isPlaying() || state.holeStates[index] !== "clean") {
 			return;
 		}
 
@@ -226,16 +262,12 @@ function hideOverlay() {
 
 // Show pause menu and freeze game updates.
 function showPauseMenu() {
-	if (state.gameStatus !== "playing") {
+	if (!isPlaying()) {
 		return;
 	}
 
-	state.gameStatus = "paused";
-
-	if (state.intervalId !== null) {
-		window.clearInterval(state.intervalId);
-		state.intervalId = null;
-	}
+	state.gameStatus = GAME_STATUS.PAUSED;
+	stopGameLoop();
 
 	clearHoleRedigTimers();
 	pauseScreen.classList.add("visible");
@@ -245,11 +277,11 @@ function showPauseMenu() {
 
 // Resume game loop and interactions from pause menu.
 function resumeFromPause() {
-	if (state.gameStatus !== "paused" || !pauseScreen.classList.contains("visible")) {
+	if (state.gameStatus !== GAME_STATUS.PAUSED || !pauseScreen.classList.contains("visible")) {
 		return;
 	}
 
-	state.gameStatus = "playing";
+	state.gameStatus = GAME_STATUS.PLAYING;
 	pauseScreen.classList.remove("visible");
 	gameContainer.classList.remove("game-disabled");
 	pauseButton.disabled = false;
@@ -261,9 +293,7 @@ function resumeFromPause() {
 		}
 	});
 
-	if (state.intervalId === null) {
-		state.intervalId = window.setInterval(tick, 1000);
-	}
+	startGameLoop();
 }
 
 // Reset round values and begin the selected level.
@@ -273,10 +303,7 @@ function startLevel(levelIndex, options = {}) {
 	const safeLevelIndex = Math.max(0, Math.min(LEVELS.length - 1, levelIndex));
 
 	// Ensure only one game loop interval is active at a time.
-	if (state.intervalId !== null) {
-		window.clearInterval(state.intervalId);
-		state.intervalId = null;
-	}
+	stopGameLoop();
 
 	// Reset level-scoped state while optionally preserving score.
 	clearHoleRedigTimers();
@@ -289,8 +316,8 @@ function startLevel(levelIndex, options = {}) {
 	state.selectedTool = "shovel";
 	state.activeHoleIndex = 0;
 	state.holeStates = Array.from({ length: holes.length }, () => "muggy");
-	state.gameStatus = "playing";
-	state.overlayMode = "restart";
+	state.gameStatus = GAME_STATUS.PLAYING;
+	state.overlayMode = OVERLAY_MODE.RESTART;
 
 	// Restore interactive board and boot a fresh one-second tick loop.
 	pauseScreen.classList.remove("visible");
@@ -298,7 +325,7 @@ function startLevel(levelIndex, options = {}) {
 	setSelectedTool(state.selectedTool);
 	pauseButton.disabled = false;
 	render();
-	state.intervalId = window.setInterval(tick, 1000);
+	startGameLoop();
 }
 
 // Prepare and start the next level while keeping score continuity.
@@ -354,29 +381,26 @@ function triggerConfetti() {
 
 // Stop gameplay and reveal end-game overlay for win/loss states.
 function endGame(status, message) {
-	if (state.gameStatus !== "playing") {
+	if (!isPlaying()) {
 		return;
 	}
 
 	state.gameStatus = status;
 
-	if (state.intervalId !== null) {
-		window.clearInterval(state.intervalId);
-		state.intervalId = null;
-	}
+	stopGameLoop();
 
 	clearHoleRedigTimers();
 	pauseButton.disabled = true;
 
 	// Only show donation CTA on successful completion.
-	if (status === "won") {
+	if (status === GAME_STATUS.WON) {
 		cwDonateBtn.removeAttribute("hidden");
 		triggerConfetti();
 	} else {
 		cwDonateBtn.setAttribute("hidden", "hidden");
 	}
 
-	showOverlay(status === "won" ? "Mission Accomplished" : "Game Over", message, "Play Again", "restart");
+	showOverlay(status === GAME_STATUS.WON ? "Mission Accomplished" : "Game Over", message, "Play Again", OVERLAY_MODE.RESTART);
 }
 
 // Move to next level when available, otherwise finish the run as a win.
@@ -389,11 +413,11 @@ function completeLevelOrWin() {
 	const isFinalLevel = state.currentLevelIndex >= LEVELS.length - 1;
 
 	if (isFinalLevel) {
-		endGame("won", `You cleared all 3 levels and emptied every pollution bar. Time bonus: +${timeBonus} points.`);
+		endGame(GAME_STATUS.WON, `You cleared all 3 levels and emptied every pollution bar. Time bonus: +${timeBonus} points.`);
 		return;
 	}
 
-	state.gameStatus = "paused";
+	state.gameStatus = GAME_STATUS.PAUSED;
 	clearHoleRedigTimers();
 	triggerConfetti();
 	// Unlock direct access to the next level once this one is cleared.
@@ -406,13 +430,13 @@ function completeLevelOrWin() {
 		"Level Complete",
 		`${currentLevelName} cleared. Time bonus: +${timeBonus} points. Next: ${nextLevel.name} (${nextLevel.totalSeconds}s, -${nextLevel.pollutionReductionAmount} pollution per full reservoir).`,
 		`Start ${nextLevel.name}`,
-		"next-level"
+		OVERLAY_MODE.NEXT_LEVEL
 	);
 }
 
 // Evaluate winning and losing rules after each meaningful game update.
 function checkEndConditions() {
-	if (state.gameStatus !== "playing") {
+	if (!isPlaying()) {
 		return;
 	}
 
@@ -422,18 +446,18 @@ function checkEndConditions() {
 	}
 
 	if (state.secondsRemaining <= 0) {
-		endGame("lost", "The timer reached 00:00 before the Pollution Bar was empty.");
+		endGame(GAME_STATUS.LOST, "The timer reached 00:00 before the Pollution Bar was empty.");
 		return;
 	}
 
 	if (state.points <= 0) {
-		endGame("lost", "Your points bank reached 0 before the Pollution Bar was empty.");
+		endGame(GAME_STATUS.LOST, "Your points bank reached 0 before the Pollution Bar was empty.");
 	}
 }
 
 // Shovel action: clean muggy holes and reward points.
 function digHole(index) {
-	if (state.gameStatus !== "playing") {
+	if (!isPlaying()) {
 		return;
 	}
 
@@ -453,7 +477,7 @@ function digHole(index) {
 
 // Extractor action: pay extraction cost and add flexible reservoir units by hole quality.
 function extractWater(index) {
-	if (state.gameStatus !== "playing") {
+	if (!isPlaying()) {
 		return;
 	}
 
@@ -490,7 +514,7 @@ function extractWater(index) {
 
 // Spend any amount of reservoir water; rewards scale with current fill percent.
 function spendReservoirWater() {
-	if (state.gameStatus !== "playing") {
+	if (!isPlaying()) {
 		return;
 	}
 
@@ -513,7 +537,7 @@ function spendReservoirWater() {
 
 // One-second game loop tick: countdown time.
 function tick() {
-	if (state.gameStatus !== "playing") {
+	if (!isPlaying()) {
 		return;
 	}
 
@@ -524,7 +548,7 @@ function tick() {
 
 // Tool button handlers switch the active action mode.
 shovelButton.addEventListener("click", () => {
-	if (state.gameStatus !== "playing") {
+	if (!isPlaying()) {
 		return;
 	}
 
@@ -534,7 +558,7 @@ shovelButton.addEventListener("click", () => {
 });
 
 extractorButton.addEventListener("click", () => {
-	if (state.gameStatus !== "playing") {
+	if (!isPlaying()) {
 		return;
 	}
 
@@ -573,10 +597,13 @@ waterReservoirContainer.addEventListener("keydown", (event) => {
 	}
 });
 
-// Restart control resets state by reloading the page.
+// Restart control either advances to the next level or restarts the current one.
 restartButton.addEventListener("click", () => {
+	// Always clear particles when leaving any end/transition overlay.
+	confettiContainer.innerHTML = "";
+
 	// On level-complete overlay, continue progression instead of reset.
-	if (state.overlayMode === "next-level") {
+	if (state.overlayMode === OVERLAY_MODE.NEXT_LEVEL) {
 		advanceToNextLevel();
 		return;
 	}
@@ -638,7 +665,3 @@ startButton.addEventListener("click", () => {
 // Show intro modal on page load instead of immediately starting.
 showIntroModal();
 
-// Clear confetti on restart to prevent lingering particles.
-restartButton.addEventListener("click", () => {
-	confettiContainer.innerHTML = "";
-});
